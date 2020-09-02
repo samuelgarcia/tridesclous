@@ -20,8 +20,9 @@ from pprint import pprint
 import numpy as np
 import scipy.signal
 import scipy.interpolate
-import seaborn as sns
-sns.set_style("white")
+
+#~ import seaborn as sns
+#~ sns.set_style("white")
 
 import sklearn
 import sklearn.metrics
@@ -39,6 +40,7 @@ from . import cleancluster
 from .iotools import ArrayCollection
 
 import matplotlib.pyplot as plt
+from matplotlib import cm
 
 from . import labelcodes
 
@@ -319,7 +321,7 @@ class CatalogueConstructor:
     
     def set_global_params(self, 
             chunksize=1024,
-            memory_mode='memmap',   # 'memmap' or 'ram' 
+            memory_mode='memmap',   # 'memmap' or 'ram'
             internal_dtype = 'float32',  # TODO "int16"
             mode='dense',
             #~ adjacency_radius_um=None,
@@ -1505,7 +1507,13 @@ class CatalogueConstructor:
             n = np.sum((self.clusters['cluster_label']>=0) & (self.clusters['color']==0))
 
         if n>0:
-            colors_int32 = np.array([rgba_to_int32(r,g,b) for r,g,b in sns.color_palette(palette, n)])
+            #~ colors_int32 = np.array([rgba_to_int32(r,g,b) for r,g,b in sns.color_palette(palette, n)])
+            cmap = cm.get_cmap('Set3', n)
+            colors_int32 = []
+            for i in range(n):
+                r,g,b, _ = cmap(i)
+                colors_int32.append(rgba_to_int32(r,g,b))
+            colors_int32 = np.array(colors_int32)
             
             if reset and interleaved and n>1:
                 colors_int32 = colors_int32.reshape(n1, n2).T.flatten()
@@ -2023,9 +2031,17 @@ class CatalogueConstructor:
                 count, bins = np.histogram(distances, bins=bins)
                 count2, bins2 = np.histogram(noise_distances, bins=bins)
                 
+                #~ n = len(cluster_labels)
+                #~ colors_ = sns.color_palette('husl', n)
+                #~ colors = {k: colors_[i] for i, k in enumerate(cluster_labels)}
+                
                 n = len(cluster_labels)
-                colors_ = sns.color_palette('husl', n)
-                colors = {k: colors_[i] for i, k in enumerate(cluster_labels)}
+                cmap = cm.get_cmap('Set3', n)
+                colors = {}
+                for i, k in enumerate(cluster_labels):
+                    colors[k] = cmap(i)
+
+
                 
                 fig, ax = plt.subplots()
                 ax.plot(bins[:-1], count, color='g')
